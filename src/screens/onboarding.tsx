@@ -1,21 +1,22 @@
 import React, { useRef, useState, FC } from 'react';
 import Animated, { useSharedValue } from 'react-native-reanimated';
-import { SafeAreaView, StyleSheet, StatusBar, Dimensions, View, Text } from 'react-native';
-import { router } from 'expo-router';
+import { SafeAreaView, StyleSheet, StatusBar, Dimensions, View, Text, FlatList } from 'react-native';
 import LogoIcon from '@/assets/icons/Logo'
 import onboardingData  from '@/constants/OnboardingData';
 import OnboardingItem from '@/components/main/OnboardingItem';
 import { grey, primaryColor } from '@/components/common/variables';
 import * as UI from '@/components/common';
+import { NavigationProp } from '@react-navigation/native';
+import { Route } from 'expo-router';
 
 
-export default function TabOneScreen() {
+export default function OnboardingScreen({navigation}: {navigation: any}) {
 
 
 
   // flatlist functions
   const [currentIndex, setCurrentIndex] = useState(1);
-  let flatListRef = useRef();
+  let flatListRef = useRef<any>();
   const translateX = useSharedValue(0);
 
   const viewConfigRef = {viewAreaCoveragePercentThreshold: 100}
@@ -33,7 +34,7 @@ export default function TabOneScreen() {
     if (currentIndex === 2) {
 
       // wi
-      router.navigate('/dashboard');
+      navigation.navigate('/Dashboard');
     
     } else {
       flatListRef.current.scrollToIndex({index: currentIndex + 1})
