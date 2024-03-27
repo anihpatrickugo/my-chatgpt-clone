@@ -1,7 +1,8 @@
 import {GoogleGenerativeAI} from "@google/generative-ai"
 
+const apiKey = process.env.GOOGLE_GEMINI_API_KEY || " "
 
-const genAI = new GoogleGenerativeAI("AIzaSyBDPhtgRGoYy777sBy19_U3RtE3akoCOCA");
+const genAI = new GoogleGenerativeAI(apiKey);
 
 
 export const askGemini = async (question: string) => {
