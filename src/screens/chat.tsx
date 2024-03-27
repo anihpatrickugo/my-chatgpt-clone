@@ -10,6 +10,8 @@ import { white, primaryColor, black, danger, grey } from '@/components/common/va
 import * as UI from '@/components/common';
 import OnboardingData from '@/constants/OnboardingData';
 
+import { askGemini } from '@/utils/askGemini';
+
 
 const { width, height } = Dimensions.get('window')
 
@@ -17,6 +19,14 @@ const { width, height } = Dimensions.get('window')
 const ChatScreen = () => {
 
     const [text, setText] = useState("")
+
+    const handleSend = async() => {
+        if (text !== "") {
+           const data = await askGemini(text)
+           console.log(data)
+           setText("")
+        }
+    }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -61,7 +71,7 @@ const ChatScreen = () => {
 
     {/* Textinput */}
     <UI.TextInput placeholder="Type a message" value={text} selectTextOnFocus editable keyboardType="default" multiline onChangeText={setText} >
-        <Pressable style={styles.sendButton}>
+        <Pressable style={styles.sendButton} onPress={handleSend}>
           <SendIcon width={20} height={20}/>
         </Pressable>
     </UI.TextInput>

@@ -16,7 +16,13 @@ import OnboardingData from '@/constants/OnboardingData';
 const { width, height } = Dimensions.get('window')
 
 
-const DashboardScreen = () => {
+import { NavigationProp } from '@react-navigation/native';
+
+type DashboardScreenProps = {
+  navigation: NavigationProp<any>;
+};
+
+const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
@@ -31,7 +37,7 @@ const DashboardScreen = () => {
       <View style={{width: "100%", flex: 1}}>
 
         {/* New chat */}
-      <Pressable style={styles.chatButton} onPress={()=>router.push("/chat")}>
+      <Pressable style={styles.chatButton} onPress={()=>navigation.navigate("Chat")}>
        <View style={{flexDirection: "row", alignItems: "center", gap: 12}}>
           <ChatIcon width={20} height={20}/>
           <UI.Text size='md'>New Chat</UI.Text>

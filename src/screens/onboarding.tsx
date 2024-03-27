@@ -1,18 +1,39 @@
-import React, { useRef, useState, FC } from 'react';
+import React, { useRef, useState, FC, useEffect } from 'react';
 import Animated, { useSharedValue } from 'react-native-reanimated';
 import { SafeAreaView, StyleSheet, StatusBar, Dimensions, View, Text, FlatList } from 'react-native';
-import LogoIcon from '@/assets/icons/Logo'
+
+
+
+import {GoogleSignin} from '@react-native-google-signin/google-signin'
+import { supabase } from '@/utils/supabase'
+
+import LogoIcon from '@/assets/icons/Logo';
 import onboardingData  from '@/constants/OnboardingData';
 import OnboardingItem from '@/components/main/OnboardingItem';
 import { grey, primaryColor } from '@/components/common/variables';
 import * as UI from '@/components/common';
-import { NavigationProp } from '@react-navigation/native';
-import { Route } from 'expo-router';
+
 
 
 export default function OnboardingScreen({navigation}: {navigation: any}) {
 
+  const [userInfo, setUserInfo] = useState<any>(null)
+  const [error, setError] = useState<any>(null);
 
+  // google auth
+ 
+   const configureGoogleSignIn =  () => {
+     GoogleSignin.configure({
+      webClientId: process.env.GOOGLE_EXPO_CLIENT_ID,
+      androidClientId: process.env.GOOGLE_ANDROID_CLIENT_ID,
+      // offlineAccess: true,
+    });
+   }
+    
+
+  useEffect(()=>{
+    configureGoogleSignIn()
+   }, [])
 
   // flatlist functions
   const [currentIndex, setCurrentIndex] = useState(1);
@@ -30,12 +51,27 @@ export default function OnboardingScreen({navigation}: {navigation: any}) {
   const { width, height } = Dimensions.get('window')
   const ITEM_WIDTH = width;
 
-  const handlePress = () => {
-    if (currentIndex === 2) {
-
-      // wi
-      navigation.navigate('/Dashboard');
+  const handlePress = async () => {
     
+
+    if (currentIndex === 2) {
+      //prompt google
+      try {
+        await GoogleSignin.hasPlayServices();
+        const userInfo = await GoogleSignin.signIn();
+        
+        if (userInfo.idToken) {
+          const {} = await supabase.auth.signInWithIdToken({provider: 'google', token: userInfo.idToken})
+        } else {
+          setError({message: 'Google token not found'})
+        }
+        setError(null)
+        setUserInfo(userInfo);
+        console.log(userInfo);
+      } catch (error) {
+        setError(error);
+      }
+      // navigation.navigate('/Dashboard');
     } else {
       flatListRef.current.scrollToIndex({index: currentIndex + 1})
     }

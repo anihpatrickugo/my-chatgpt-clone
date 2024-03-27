@@ -3,6 +3,8 @@ module.exports = function (api) {
   return {
     presets: ["babel-preset-expo"],
     plugins: [
+      "module:react-native-dotenv",
+
       // reanimated plugin has to be the last
       "react-native-reanimated/plugin",
     ],
