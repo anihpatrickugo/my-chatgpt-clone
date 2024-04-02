@@ -1,28 +1,54 @@
 import React, { useRef, useState, FC } from 'react';
-import { SafeAreaView, StyleSheet, StatusBar, Dimensions, View, Pressable, FlatList,} from 'react-native';
-import { router, Stack } from 'expo-router';
+import { SafeAreaView, StyleSheet, StatusBar, Dimensions, View, TouchableOpacity, FlatList, Alert,} from 'react-native';
+import { Stack } from 'expo-router';
 import ChatIcon from '@/assets/icons/Chat'
 import { FontAwesome6 } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
 
-
-import { white, primaryColor, black, danger } from '@/components/common/variables';
+import { white, black, danger } from '@/components/common/variables';
 import * as UI from '@/components/common';
 import OnboardingData from '@/constants/OnboardingData';
 
+import { NavigationProp } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { logout } from '@/redux/slices/authSlices'; // Import the logout action
+import { useDispatch } from 'react-redux';
+import { supabase } from '@/utils/supabase';
 
 const { width, height } = Dimensions.get('window')
-
-
-import { NavigationProp } from '@react-navigation/native';
 
 type DashboardScreenProps = {
   navigation: NavigationProp<any>;
 };
 
 const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
+
+
+
+  const dispatch = useDispatch();
+
+  const handleLogout = async() => {
+
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      {
+        text: "No",
+        onPress: () => {},
+        style: "cancel"
+      },
+      { text: "Yes", onPress: async() => {
+        
+        const { error } = await supabase.auth.signOut()
+        if (!error){
+          await AsyncStorage.removeItem("access_token");
+          dispatch(logout());
+          navigation.navigate("Onboarding");
+        }
+      
+      } }
+    ]);
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -37,13 +63,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       <View style={{width: "100%", flex: 1}}>
 
         {/* New chat */}
-      <Pressable style={styles.chatButton} onPress={()=>navigation.navigate("Chat")}>
+      <TouchableOpacity style={styles.chatButton} onPress={()=>navigation.navigate("Chat")}>
        <View style={{flexDirection: "row", alignItems: "center", gap: 12}}>
           <ChatIcon width={20} height={20}/>
           <UI.Text size='md'>New Chat</UI.Text>
         </View>
         <FontAwesome6 name="greater-than" size={20} color={white} />
-      </Pressable>
+      </TouchableOpacity>
 
 
       {/* chat history */}
@@ -52,18 +78,18 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
          data={OnboardingData}
          showsVerticalScrollIndicator={false}
          renderItem={(item)=>(
-            <Pressable style={styles.chatButton}>
+            <TouchableOpacity style={styles.chatButton}>
                 <View style={{flexDirection: "row", alignItems: "center", gap: 12}}>
                   <ChatIcon width={20} height={20}/>
                    <UI.Text size='md'>New Chat</UI.Text>
                   </View>
                   <View style={{flexDirection: "row", gap:24,}}>
-                     <Pressable>
+                     <TouchableOpacity>
                         <Feather name="more-vertical" size={20} color={white} />
-                     </Pressable>
+                     </TouchableOpacity>
                      <FontAwesome6 name="greater-than" size={20} color={white} />
                   </View>
-            </Pressable>
+            </TouchableOpacity>
          )}/>
 
       </View>
@@ -74,35 +100,35 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     {/* footer */}
     <View style={styles.footer}>
      
-      <Pressable style={styles.menuButton}>
+      <TouchableOpacity style={styles.menuButton}>
        <View style={styles.menuButtonText}>
           <AntDesign name="delete" size={20} color={white} />
           <UI.Text size='md'>Clear conversations</UI.Text>
         </View>
-      </Pressable>
+      </TouchableOpacity>
       
-      <Pressable style={styles.menuButton}>
+      <TouchableOpacity style={styles.menuButton}>
        <View style={styles.menuButtonText}>
           <Feather name="user" size={20} color={white} />
-          <UI.Text size='md'>Upgrade to Plus</UI.Text>
+          <UI.Text size='md'>My Profile</UI.Text>
         </View>
 
-        <UI.Text size='sm' color="#887B06" style={{paddingHorizontal: 10, paddingVertical: 4, borderRadius:12, backgroundColor: "#FBF3AD"}}>NEW</UI.Text>
-      </Pressable>
+        {/* <UI.Text size='sm' color="#887B06" style={{paddingHorizontal: 10, paddingVertical: 4, borderRadius:12, backgroundColor: "#FBF3AD"}}>NEW</UI.Text> */}
+      </TouchableOpacity>
 
-      <Pressable style={styles.menuButton}>
+      <TouchableOpacity style={styles.menuButton} onPress={()=>navigation.navigate("Developer-Info")}>
        <View style={styles.menuButtonText}>
-          <Feather name="external-link" size={20} color={white} />
-          <UI.Text size='md'>Updates & FAQ</UI.Text>
+          <FontAwesome6 name="laptop-code" size={20} color={white} />
+          <UI.Text size='md'>Developer Info</UI.Text>
         </View>
-      </Pressable>
+      </TouchableOpacity>
 
-      <Pressable style={styles.menuButton}>
+      <TouchableOpacity style={styles.menuButton} onPress={handleLogout}>
        <View style={styles.menuButtonText}>
           <MaterialIcons name="logout" size={20} color={danger} />
           <UI.Text size='md' color={danger}>Logout</UI.Text>
         </View>
-      </Pressable>
+      </TouchableOpacity>
 
     </View>
     </SafeAreaView>

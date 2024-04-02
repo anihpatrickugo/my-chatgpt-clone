@@ -1,6 +1,6 @@
 import React, { useRef, useState, FC, useEffect } from 'react';
 import Animated, { useSharedValue } from 'react-native-reanimated';
-import { SafeAreaView, StyleSheet, StatusBar, Dimensions, View, Text, FlatList } from 'react-native';
+import { SafeAreaView, StyleSheet, StatusBar, Dimensions, View, Text, FlatList, Alert } from 'react-native';
 
 
 
@@ -12,13 +12,17 @@ import onboardingData  from '@/constants/OnboardingData';
 import OnboardingItem from '@/components/main/OnboardingItem';
 import { grey, primaryColor } from '@/components/common/variables';
 import * as UI from '@/components/common';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSelector, useDispatch } from "react-redux";
+import { login, logout } from "@/redux/slices/authSlices";
 
 
 
 export default function OnboardingScreen({navigation}: {navigation: any}) {
-
-  const [userInfo, setUserInfo] = useState<any>(null)
   const [error, setError] = useState<any>(null);
+
+  const dispatch = useDispatch()
+  
 
   // google auth
  
@@ -26,7 +30,6 @@ export default function OnboardingScreen({navigation}: {navigation: any}) {
      GoogleSignin.configure({
       webClientId: process.env.GOOGLE_EXPO_CLIENT_ID,
       androidClientId: process.env.GOOGLE_ANDROID_CLIENT_ID,
-      // offlineAccess: true,
     });
    }
     
@@ -48,7 +51,7 @@ export default function OnboardingScreen({navigation}: {navigation: any}) {
     }
   })
 
-  const { width, height } = Dimensions.get('window')
+  const { width } = Dimensions.get('window')
   const ITEM_WIDTH = width;
 
   const handlePress = async () => {
@@ -61,21 +64,33 @@ export default function OnboardingScreen({navigation}: {navigation: any}) {
         const userInfo = await GoogleSignin.signIn();
         
         if (userInfo.idToken) {
-          const {} = await supabase.auth.signInWithIdToken({provider: 'google', token: userInfo.idToken})
+          const { data } = await supabase.auth.signInWithIdToken({provider: 'google', token: userInfo.idToken})
+          
+          try {
+            const jsonValue = JSON.stringify(userInfo.idToken)
+            await AsyncStorage.setItem('access_token', jsonValue)
+          } catch (e) {
+            console.log(e)
+          }
+          // set the user in the redux store
+          dispatch(login({ payload: data?.user?.user_metadata || {}, token: userInfo.idToken }))
+          navigation.replace('/Dashoard')
         } else {
           setError({message: 'Google token not found'})
         }
         setError(null)
-        setUserInfo(userInfo);
-        console.log(userInfo);
       } catch (error) {
         setError(error);
       }
-      // navigation.navigate('/Dashboard');
+      
     } else {
       flatListRef.current.scrollToIndex({index: currentIndex + 1})
     }
   };
+
+  if (error) {
+    Alert.alert('Error', error.message)
+  }
 
   return (
     <SafeAreaView style={styles.container}>

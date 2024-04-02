@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import DashboardScreen from "@/screens/dashboard";
 import ChatScreen from "@/screens/chat";
+import DeveloperScreen from "@/screens/developer";
 
 
 const Stack = createNativeStackNavigator();
@@ -13,6 +14,7 @@ const MainFlow = () => {
       }}
     >
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
+      <Stack.Screen name="Developer-Info" component={DeveloperScreen} />
       <Stack.Screen name="Chat" component={ChatScreen} />
      
     </Stack.Navigator>
