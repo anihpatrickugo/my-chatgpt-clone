@@ -4,7 +4,8 @@ import OnboardingFlow from "./OnboardingFlow";
 import MainFlow from "./MainFlows";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+
 
 
 const NavigationFlows = () => {
@@ -16,6 +17,7 @@ const NavigationFlows = () => {
         const data = await AsyncStorage.getItem("access_token");
         if (data) {
           token = data;
+          
         }
         token = null;
       };

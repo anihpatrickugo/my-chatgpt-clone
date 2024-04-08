@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { View, Text, Image, Dimensions, StyleSheet } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated , {BounceIn, BounceInRight, BounceOut} from 'react-native-reanimated';
 import * as UI from '@/components/common';
 import LightIcon from '@/assets/icons/Light'
 import ThunderIcon from '@/assets/icons/Thunder'
@@ -25,9 +25,9 @@ interface Props {
 
 const OnboardingItem: FC<Props> = ({item}) => {
   return (
-    <Animated.View style={styles.itemContainer}>
+    <View style={styles.itemContainer}>
       
-      <View>
+      <Animated.View entering={BounceInRight.delay(100)}>
         {
             item.title === 'Examples' ? (
                 <LightIcon height={30} width={30}/>
@@ -38,22 +38,24 @@ const OnboardingItem: FC<Props> = ({item}) => {
             )
         }
          
-      </View>
+      </Animated.View>
+      
+      <Animated.View entering={BounceIn.delay(80)} exiting={BounceOut.duration(80)}>
+         <UI.Text size='lg' style={{marginBottom: 20}}>{item.title}</UI.Text>
+      </Animated.View>
 
-      <UI.Text size='lg' style={{marginBottom: 20}}>{item.title}</UI.Text>
-
-      <View style={styles.description}>
+      <Animated.View style={styles.description} entering={BounceInRight.delay(100)}>
          <UI.Text size='sm' style={{textAlign: 'center', width: "80%"}}>{item.text1}</UI.Text>
-      </View>
+      </Animated.View>
 
-      <View style={styles.description}>
+      <Animated.View style={styles.description} entering={BounceInRight.delay(100)}>
          <UI.Text size='sm' style={{textAlign: 'center', width: "80%"}}>{item.text2}</UI.Text>
-      </View>
+      </Animated.View>
 
-      <View style={styles.description}>
+      <Animated.View style={styles.description} entering={BounceInRight.delay(100)}>
          <UI.Text size='sm' style={{textAlign: 'center', width: "80%"}}>{item.text3}</UI.Text>
-      </View>
-  </Animated.View>
+      </Animated.View>
+  </View>
   )
 }
 const styles = StyleSheet.create({

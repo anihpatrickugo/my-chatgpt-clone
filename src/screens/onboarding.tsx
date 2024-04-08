@@ -1,12 +1,12 @@
+
 import React, { useRef, useState, FC, useEffect } from 'react';
-import Animated, { useSharedValue } from 'react-native-reanimated';
+import Animated, { BounceIn,BounceOut, useSharedValue } from 'react-native-reanimated';
 import { SafeAreaView, StyleSheet, StatusBar, Dimensions, View, Text, FlatList, Alert } from 'react-native';
 
 
 
 import {GoogleSignin} from '@react-native-google-signin/google-signin'
 import { supabase } from '@/utils/supabase'
-
 import LogoIcon from '@/assets/icons/Logo';
 import onboardingData  from '@/constants/OnboardingData';
 import OnboardingItem from '@/components/main/OnboardingItem';
@@ -73,7 +73,8 @@ export default function OnboardingScreen({navigation}: {navigation: any}) {
             console.log(e)
           }
           // set the user in the redux store
-          dispatch(login({ payload: data?.user?.user_metadata || {}, token: userInfo.idToken }))
+          // dispatch(login({ payload: data?.user || {}, token: userInfo.idToken }))
+          dispatch(login({ payload: userInfo.user || {}, token: userInfo.idToken }))
           navigation.replace('/Dashoard')
         } else {
           setError({message: 'Google token not found'})
@@ -95,13 +96,13 @@ export default function OnboardingScreen({navigation}: {navigation: any}) {
   return (
     <SafeAreaView style={styles.container}>
        {/* tittle */}
-      <View style={{width: '100%',alignItems: 'center'}}>
+      <Animated.View style={{width: '100%',alignItems: 'center'}} entering={BounceIn.delay(100)} exiting={BounceOut.duration(100)}>
          <View style={styles.logoIcon}>
            <LogoIcon height={30} width={30}/>
          </View>
          <UI.Text style={{width: '80%', textAlign: 'center'}} size='xl' bold>Welcome to ChatGPT</UI.Text>
          <UI.Text style={{ textAlign: 'center', marginVertical: 10}} size='md'>Ask anything, get yout answer</UI.Text>
-      </View>
+      </Animated.View>
 
       {/* flatlist items */}
       <View>
