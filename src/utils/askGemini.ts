@@ -17,14 +17,15 @@ export const askGemini = async (question: string, history: HistoryProp) => {
   const chat = model.startChat({
     history: history,
     generationConfig: {
-      maxOutputTokens: 100,
+      maxOutputTokens: 500,
     },
   });
-
-  const result = await chat.sendMessage(question);
-  const response = await result.response;
-  const text = response.text();
-  return text
+   
+   const result = await chat.sendMessage(question);
+   const response = await result.response;
+   const text = response.text();
+   return text
+  
 }
 
 

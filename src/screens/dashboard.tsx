@@ -7,7 +7,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
 
-import { white, black, danger, primaryColor } from '@/components/common/variables';
+import { white, black, danger, primaryColor, grey } from '@/components/common/variables';
 import * as UI from '@/components/common';
 import OnboardingData from '@/constants/OnboardingData';
 
@@ -16,7 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { logout } from '@/redux/slices/authSlices'; // Import the logout action
 import { useDispatch } from 'react-redux';
 import { supabase } from '@/utils/supabase';
-import { clearChat } from '@/redux/slices/chatSlices';
+import { HistoryProp, clearChat } from '@/redux/slices/chatSlices';
 
 const { width, height } = Dimensions.get('window')
 
@@ -26,19 +26,7 @@ type DashboardScreenProps = {
 
 const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
-  const [chat, setChat] = useState<any | never>([])
-  // const [error, setError] = useState('')
-
-  // useLayoutEffect(() => {
-  //     async()=>{
-  //       const { data, error } = await supabase.from('chats').select()
-  //       if (data) {
-  //         setChat(data)
-  //         console.log(data)
-  //       }
-  //       setError('error fetching data')
-  //     }
-  // }, [])
+ 
 
   const dispatch = useDispatch();
 
@@ -85,31 +73,11 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       </TouchableOpacity>
 
 
-      {/* chat history */}
+      <View style={{marginTop: 100}}>
+        <UI.Text size='lg'  color={grey} style={{textAlign: 'center'}}>Powered By Google Gemini</UI.Text>
+      </View>
 
-      {/* {chat.length > 0 ? (
-          <FlatList
-          style={{width: "100%"}}
-          data={OnboardingData}
-          showsVerticalScrollIndicator={false}
-          renderItem={(item)=>(
-             <TouchableOpacity style={styles.chatButton}>
-                 <View style={{flexDirection: "row", alignItems: "center", gap: 12}}>
-                   <ChatIcon width={20} height={20}/>
-                    <UI.Text size='md'>New Chat</UI.Text>
-                   </View>
-                   <View style={{flexDirection: "row", gap:24,}}>
-                      <TouchableOpacity>
-                         <Feather name="more-vertical" size={20} color={white} />
-                      </TouchableOpacity>
-                      <FontAwesome6 name="greater-than" size={20} color={white} />
-                   </View>
-             </TouchableOpacity>
-          )}/>
- 
-      ) : (
-        <UI.Text size='lg' color={white} bold style={{textAlign: 'center', marginTop: 20}}>No chat history</UI.Text>
-      )} */}
+    
       
      
       </View>
@@ -120,12 +88,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     {/* footer */}
     <View style={styles.footer}>
      
-      <TouchableOpacity style={styles.menuButton} onPress={()=> dispatch(clearChat())}>
+      {/* <TouchableOpacity style={styles.menuButton} onPress={()=> dispatch(clearChat())}>
        <View style={styles.menuButtonText}>
           <AntDesign name="delete" size={20} color={white} />
           <UI.Text size='md'>Clear conversations</UI.Text>
         </View>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
       
       <TouchableOpacity style={styles.menuButton} onPress={()=>navigation.navigate("Profile")}>
        <View style={styles.menuButtonText}>

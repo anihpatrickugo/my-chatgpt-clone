@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { useSelector } from 'react-redux';
 import * as UI from '@/components/common';
+import Animated, { PinwheelIn } from 'react-native-reanimated';
 
 // Defining the ProfileScreen component
 const ProfileScreen: React.FC = () => {
@@ -13,7 +14,7 @@ const ProfileScreen: React.FC = () => {
     const user = data.user.payload;
 
     return (
-        <View style={styles.container}>
+        <Animated.View style={styles.container} entering={PinwheelIn.delay(500)}>
             <View style={styles.card}>
                 {/* Displaying the user's profile image */}
                 <Image source={{ uri: user.photo }} style={styles.profileImage} />
@@ -22,7 +23,7 @@ const ProfileScreen: React.FC = () => {
                 {/* Displaying the user's email */}
                 <UI.Text size='md' color={primaryColor} bold>{user.email}</UI.Text>
             </View>
-        </View>
+        </Animated.View>
     );
 };
 

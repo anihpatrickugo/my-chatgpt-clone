@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity , Linking, StyleSheet, StatusBar, Dimensions} from 'react-native';
+import Animated, { BounceIn, FadeIn, FlipInEasyX, ZoomIn } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
@@ -26,17 +27,17 @@ const DeveloperScreen = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Image source={developer.image} style={{ width: 200, height: 200, borderRadius: 100 }} />
+            <Animated.Image source={developer.image} style={{ width: 200, height: 200, borderRadius: 100 }} entering={BounceIn.delay(80)} />
 
-            <View style={{alignItems: "center"}}>
+            <Animated.View style={{alignItems: "center"}} entering={FlipInEasyX.delay(500)}>
                <UI.Text size='lg' bold color={primaryColor}>{developer.name}</UI.Text>
                <UI.Text size='sm' bold color={grey} style={{textAlign: "center"}}>{developer.about}</UI.Text>
 
                <UI.Text size='xs' color={grey} style={{textAlign: "center"}}>{developer.description}</UI.Text>
-            </View>
+            </Animated.View>
 
 
-            <View style={{ flexDirection: 'row', marginTop: 16, gap: 12 }}>
+            <Animated.View style={{ flexDirection: 'row', marginTop: 16, gap: 12 }} entering={ZoomIn.delay(1000)}>
                 <TouchableOpacity onPress={() => Linking.openURL(developer.github)}>
                     <Ionicons name="logo-github" size={32} color="black" style={{ marginRight: 16 }} />
                 </TouchableOpacity>
@@ -55,7 +56,7 @@ const DeveloperScreen = () => {
                 <TouchableOpacity onPress={() => Linking.openURL(developer.website)}>
                     <MaterialCommunityIcons name="web" size={32} color="black" />
                 </TouchableOpacity>
-            </View>
+            </Animated.View>
         </SafeAreaView>
     );
 };

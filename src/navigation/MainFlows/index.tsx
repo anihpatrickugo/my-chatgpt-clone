@@ -13,8 +13,9 @@ const MainFlow = () => {
       screenOptions={{
         headerShown: false,
       }}
+      
     >
-      <Stack.Screen name="Dashboard" component={DashboardScreen} />
+      <Stack.Screen name="Dashboard" component={DashboardScreen}/>
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="Developer-Info" component={DeveloperScreen} />
       <Stack.Screen name="Chat" component={ChatScreen} />

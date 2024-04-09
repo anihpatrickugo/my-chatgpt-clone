@@ -1,4 +1,4 @@
-import React, { useRef, useState, FC, useEffect } from 'react';
+import React, { useRef, useState, FC, useEffect, useLayoutEffect } from 'react';
 import { SafeAreaView, Keyboard, TouchableOpacity, StyleSheet, StatusBar, Dimensions, View, Pressable, FlatList, Alert, KeyboardAvoidingView,} from 'react-native';
 import { router, Stack } from 'expo-router';
 import ChatgptIcon from '@/assets/icons/Chatgpt'
@@ -6,80 +6,80 @@ import { FontAwesome6 } from '@expo/vector-icons';
 import SendIcon from '@/assets/icons/Send'
 
 
-import { white, primaryColor, black, danger, grey } from '@/components/common/variables';
+import { white, primaryColor,grey } from '@/components/common/variables';
 import * as UI from '@/components/common';
 import OnboardingData from '@/constants/OnboardingData';
 import { useSelector, useDispatch } from 'react-redux';
 
 import { askGemini } from '@/utils/askGemini';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ChatProps, HistoryProp, addChat } from '@/redux/slices/chatSlices';
+
+
 
 
 
 const { width, height } = Dimensions.get('window')
 
 
+
 const ChatScreen = ({navigation}: any) => {
+  const [loading, setLoading] = useState(false)
   const [text, setText] = useState("")
  
   const flatlistRef = useRef<FlatList>(null)
 
-  const history = useRef<HistoryProp>([]).current
-
   const chat = useSelector((state: {chat: HistoryProp}) => state.chat)
+
+  // by initializing the history ref with a copy of the chat redux store, history will always be in syc
+  // and bot will always remember previous conversations even if you leave the the chat screen.
+  let history = useRef<HistoryProp>([...chat]).current
+
   const dispatch = useDispatch()
 
-  
 
-
-    const handleSend = async() => {
+  const handleSend = async() => {
       // dispatch to the chat store must be called first
       dispatch(addChat({role: "user", text: text}))
-      await AsyncStorage.setItem("history", JSON.stringify(chat))
+      
 
+      // set loading to true
+      setLoading(true)
+  
 
       if (text !== "") {
         const newObj: ChatProps = {role: "user", parts: [{text: text}]}
-        const data = await askGemini(text, history)
+
+        // get the text from the input and quickly clear it out of the text input
+        const question = text
+        setText("")
+
+         // dismiss the keyboard and scroll to the end of the flatlist
+         Keyboard.dismiss()
+
+         const data = await askGemini(question, history)
+
 
         // only push to the history ref after asking the model
         history.push(newObj)
         
-        // dismiss the keyboard and scroll to the end of the flatlist
-        Keyboard.dismiss()
-        flatlistRef.current?.scrollToEnd()
         
-      
-
+        // check if there isnt an error and data is not empty
         if (!data.includes("error") && (data?.trim()?.length || 0 ) > 0 ) {
-           dispatch(addChat({role: "model", text: data}))
-           const objModel: ChatProps = {role: "model", parts: [{text: data}]} 
-           await AsyncStorage.setItem("history", JSON.stringify(chat))
-           history.push(objModel)
+          const objModel: ChatProps = {role: "model", parts: [{text: data}]} 
+          history.push(objModel)
+          dispatch(addChat({role: "model", text: data}))
+          
           }
         }else{
           Alert.alert("Error", "Could not get an answer, please try again later.")
         }
 
-        setText("")
+        // set loading to false
+        setLoading(false)
 
     }
 
-    useEffect(() => {
-      const getData = async() => {
-        
-       const history = await AsyncStorage.getItem("history")
-
-       if (!history || history === "") {
-        await AsyncStorage.setItem("history", JSON.stringify([]))
-        // setChat([])
-       }
-       const data =  JSON.parse(history || "[]")
-      //  setChat(data)
-      }
-      getData()
-    },[])
+    
 
   return (
     <SafeAreaView style={styles.container}>
@@ -91,13 +91,16 @@ const ChatScreen = ({navigation}: any) => {
       />
 
       {/* header */}
-      <Pressable style={styles.headerButton} onPress={()=>navigation.goBack()}>
-       <View style={{flexDirection: "row", alignItems: "center", gap: 12}}>
+      <View style={styles.headerButton} >
+       <Pressable style={{flexDirection: "row", alignItems: "center", gap: 12}} onPress={()=>navigation.goBack()}>
           <FontAwesome6 name="less-than" size={20} color={white} />
           <UI.Text size='md'>Back</UI.Text>
-        </View>
-        <ChatgptIcon width={25} height={25}/>
-      </Pressable>
+        </Pressable>
+
+       { loading && <UI.Text size='md' color={primaryColor}>Loading..</UI.Text>} 
+       <ChatgptIcon width={25} height={25}/>
+      
+      </View>
 
 
       {/* chat history */}
@@ -108,6 +111,7 @@ const ChatScreen = ({navigation}: any) => {
            style={{width: "100%"}}
            data={chat}
            ref={flatlistRef}
+           onContentSizeChange={()=>flatlistRef.current?.scrollToEnd()}
            showsVerticalScrollIndicator={false}
            renderItem={(value)=>(
               <View style={[styles.chatItem, {justifyContent: (value.item.role === "user") ? "flex-end": "flex-start"}]}>
