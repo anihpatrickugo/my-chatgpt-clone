@@ -1,7 +1,7 @@
-import React, { useRef, useState, FC, useEffect, useLayoutEffect } from 'react';
+import React, { useRef, useState, FC, useEffect, useLayoutEffect, useMemo } from 'react';
 import { SafeAreaView, Keyboard, TouchableOpacity, StyleSheet, StatusBar, Dimensions, View, Pressable, FlatList, Alert, KeyboardAvoidingView,} from 'react-native';
 import { router, Stack } from 'expo-router';
-import ChatgptIcon from '@/assets/icons/Chatgpt'
+import { AntDesign } from '@expo/vector-icons';
 import { FontAwesome6 } from '@expo/vector-icons';
 import SendIcon from '@/assets/icons/Send'
 
@@ -12,7 +12,11 @@ import OnboardingData from '@/constants/OnboardingData';
 import { useSelector, useDispatch } from 'react-redux';
 
 import { askGemini } from '@/utils/askGemini';
-import { ChatProps, HistoryProp, addChat } from '@/redux/slices/chatSlices';
+import { ChatProps, HistoryProp, addChat, createHistory } from '@/redux/slices/chatSlices';
+import MessageItem from '../components/main/MessageItem';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+
 
 
 
@@ -23,31 +27,31 @@ const { width, height } = Dimensions.get('window')
 
 
 const ChatScreen = ({navigation}: any) => {
+
+ 
+  const [historyState, setHistoryState] = useState<HistoryProp>([])
   const [loading, setLoading] = useState(false)
   const [text, setText] = useState("")
- 
+  
   const flatlistRef = useRef<FlatList>(null)
 
-  const chat = useSelector((state: {chat: HistoryProp}) => state.chat)
-
-  // by initializing the history ref with a copy of the chat redux store, history will always be in syc
-  // and bot will always remember previous conversations even if you leave the the chat screen.
-  let history = useRef<HistoryProp>([...chat]).current
-
+  const chat = useSelector((state: any) => state.chat)
   const dispatch = useDispatch()
 
 
-  const handleSend = async() => {
-      // dispatch to the chat store must be called first
-      dispatch(addChat({role: "user", text: text}))
-      
+  // by initializing the history ref with a copy of the chat redux store, history will always be in syc
+  // and bot will always remember previous conversations even if you leave the the chat screen.
+  const history = useRef<any>([...chat]).current
 
-      // set loading to true
-      setLoading(true)
-  
+
+  const handleSend = async() => {
+
 
       if (text !== "") {
-        const newObj: ChatProps = {role: "user", parts: [{text: text}]}
+        const userQuestion: ChatProps = {role: "user", parts: [{text: text}]}
+
+        setHistoryState([...historyState, userQuestion])
+        dispatch(addChat({role: "user", text: text}))
 
         // get the text from the input and quickly clear it out of the text input
         const question = text
@@ -56,20 +60,48 @@ const ChatScreen = ({navigation}: any) => {
          // dismiss the keyboard and scroll to the end of the flatlist
          Keyboard.dismiss()
 
+           // set loading to true
+          setLoading(true)
+
          const data = await askGemini(question, history)
 
 
         // only push to the history ref after asking the model
-        history.push(newObj)
+        history.push(userQuestion)
+      
         
         
         // check if there isnt an error and data is not empty
-        if (!data.includes("error") && (data?.trim()?.length || 0 ) > 0 ) {
+        if (!data.includes("error") || (data?.trim()?.length || 0 ) > 0 ) {
+          const modelAnswer: ChatProps = {role: "model", parts: [{text: data}]}
+          setHistoryState([...historyState, userQuestion, modelAnswer]) // i still added the user question here to avoid reloading...
+          dispatch(addChat({role: "model", text: data}))
+
+
+           // save the chat to the local storage
+          const local = await AsyncStorage.getItem("history")
+          if (local){
+          const list = JSON.parse(local)
+            list.push({role: "user", parts: [{text: text}]})
+            AsyncStorage.setItem("history", JSON.stringify(list))
+           }
+          
           const objModel: ChatProps = {role: "model", parts: [{text: data}]} 
           history.push(objModel)
-          dispatch(addChat({role: "model", text: data}))
           
           }
+
+        
+          // save the chat to the local storage
+            const obj = await AsyncStorage.getItem("history")
+            if (obj) {
+              const list = JSON.parse(obj)
+              list.push({role: "model", parts: [{text: data}]})
+              AsyncStorage.setItem("history", JSON.stringify(list))
+              
+            }
+      
+
         }else{
           Alert.alert("Error", "Could not get an answer, please try again later.")
         }
@@ -78,6 +110,44 @@ const ChatScreen = ({navigation}: any) => {
         setLoading(false)
 
     }
+
+
+
+    const handleClearHistory = async() => {
+       Alert.alert("Clear History", "Are you sure you want to clear your chat history?", [
+         {
+           text: "Yes",
+           onPress: async() => {
+             await AsyncStorage.setItem("history", JSON.stringify([]))
+             setHistoryState([])
+           }
+         },
+         {
+           text: "No",
+           onPress: ()=>null
+         }
+       ])
+    }
+
+    useLayoutEffect(()=> {
+      const getHistory = async ()=>{
+       const localHistory = await AsyncStorage.getItem("history")
+       if (localHistory){
+         const list = JSON.parse(localHistory)
+      
+        setHistoryState(list)
+   
+
+  
+       }else {
+         await AsyncStorage.setItem("history", JSON.stringify([]))
+       }
+       
+       }
+       getHistory()
+     }, [])
+
+  
 
     
 
@@ -98,7 +168,9 @@ const ChatScreen = ({navigation}: any) => {
         </Pressable>
 
        { loading && <UI.Text size='md' color={primaryColor}>Loading..</UI.Text>} 
-       <ChatgptIcon width={25} height={25}/>
+       <Pressable onPress={historyState.length > 0 ? handleClearHistory : ()=>{}}>
+          <AntDesign name="delete" size={24} color={white} />
+       </Pressable>
       
       </View>
 
@@ -109,16 +181,12 @@ const ChatScreen = ({navigation}: any) => {
         { OnboardingData ? (
            <FlatList
            style={{width: "100%"}}
-           data={chat}
+           data={historyState}
            ref={flatlistRef}
            onContentSizeChange={()=>flatlistRef.current?.scrollToEnd()}
            showsVerticalScrollIndicator={false}
            renderItem={(value)=>(
-              <View style={[styles.chatItem, {justifyContent: (value.item.role === "user") ? "flex-end": "flex-start"}]}>
-                    <View style={[ styles.textContainner, (value.item.role === "user") ? {backgroundColor: primaryColor, borderBottomRightRadius: 0} : {backgroundColor: "rgba(255, 255, 255, 0.2);", borderBottomLeftRadius: 0}]}>
-                       <UI.Text size='sm' color='white' style={{width: '100%' }}>{value.item.parts[0]?.text}</UI.Text>
-                    </View>
-              </View>
+              <MessageItem value={value}/>
            )}/>
         ) : (
              <UI.Text size='md' color="rgba(255, 255, 255, 0.4);">Ask anything, get yout answer</UI.Text>
@@ -166,19 +234,6 @@ const styles = StyleSheet.create({
     justifyContent: "center", 
     alignItems: "center"
 },
-
-  chatItem: {
-    width: "100%", 
-    marginTop: 4, 
-    paddingVertical:8, 
-    flexDirection: "row", 
-   },
-
-   textContainner: {
-    width:"80%", 
-    padding: 8,
-    borderRadius: 8,
-   },  
 
 
    sendButton: {

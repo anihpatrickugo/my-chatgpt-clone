@@ -67,8 +67,9 @@ export default function OnboardingScreen({navigation}: {navigation: any}) {
           const { data } = await supabase.auth.signInWithIdToken({provider: 'google', token: userInfo.idToken})
           
           try {
-            const jsonValue = JSON.stringify(userInfo.idToken)
-            await AsyncStorage.setItem('access_token', jsonValue)
+            await AsyncStorage.setItem('access_token', JSON.stringify(userInfo.idToken))
+            await AsyncStorage.setItem('user', JSON.stringify(userInfo.user))
+          
           } catch (e) {
             console.log(e)
           }

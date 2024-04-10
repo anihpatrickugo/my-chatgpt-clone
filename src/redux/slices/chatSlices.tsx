@@ -29,12 +29,19 @@ export const chatSlice = createSlice({
       // immutable state based off those changes
       state.push({role: action.payload.role, parts: [{text: action.payload.text}]})
     },
+    
+
+
     clearChat: (state: HistoryProp )=> {
       state = [] 
+    },
+
+    createHistory: (state: HistoryProp, action: PayloadAction<HistoryProp>) => {
+      state = action.payload
     }
 }})
 
 // Action creators are generated for each case reducer function
-export const { addChat, clearChat } = chatSlice.actions
+export const { addChat, clearChat, createHistory } = chatSlice.actions
 
 export default chatSlice.reducer

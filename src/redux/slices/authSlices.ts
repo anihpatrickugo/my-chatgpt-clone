@@ -30,6 +30,7 @@ export const authSlice = createSlice({
       // which detects changes to a "draft state" and produces a brand new
       // immutable state based off those changes
       state.user = action.payload;
+      state.token = action.payload.token.toString()
     },
     logout: (state: AuthStateProps) => {
       state.user = null

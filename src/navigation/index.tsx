@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import OnboardingFlow from "./OnboardingFlow";
 import MainFlow from "./MainFlows";
@@ -13,25 +13,29 @@ const NavigationFlows = () => {
     let token = useSelector((state: any) => state.auth.token)
     let user = useSelector((state: any) => state.auth.user);
 
+    // console.log(token)
+
   
 
-    useLayoutEffect(() => {
+    useEffect(() => {
       const fetchData = async () => {
-        const data = await AsyncStorage.getItem("access_token");
-        if (data) {
-          token = data;
-          console.log(token)
-          
+        const tokenData = await AsyncStorage.getItem("access_token");
+        const userData = await AsyncStorage.getItem("user");
+
+        if (tokenData && userData) {
+          token = tokenData;
+          user = userData;  
         }
         token = null;
       };
       fetchData();
-    }, [token]);
+      // console.log(token)
+    }, [token, user]);
 
   return (
   
       <NavigationContainer independent >
-        {user || token ? <MainFlow /> : <OnboardingFlow />}
+        {user ||  token ? <MainFlow /> : <OnboardingFlow />}
       </NavigationContainer>
     
   );

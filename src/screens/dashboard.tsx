@@ -16,7 +16,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { logout } from '@/redux/slices/authSlices'; // Import the logout action
 import { useDispatch } from 'react-redux';
 import { supabase } from '@/utils/supabase';
-import { HistoryProp, clearChat } from '@/redux/slices/chatSlices';
+import { HistoryProp, createHistory } from '@/redux/slices/chatSlices';
+
+
+
 
 const { width, height } = Dimensions.get('window')
 
@@ -25,6 +28,8 @@ type DashboardScreenProps = {
 };
 
 const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
+
+
 
  
 
@@ -43,6 +48,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         const { error } = await supabase.auth.signOut()
         if (!error){
           await AsyncStorage.removeItem("access_token");
+          await AsyncStorage.removeItem("user");
           dispatch(logout());
           navigation.navigate("Onboarding");
         }
@@ -50,6 +56,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       } }
     ]);
   }
+ 
 
   return (
     <SafeAreaView style={styles.container}>
